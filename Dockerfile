@@ -7,8 +7,8 @@ WORKDIR /ipxe-${iPXE_VERSION}/src
 RUN sed -i 's/^#undef[\t ]DOWNLOAD_PROTO_HTTPS.*$/#define DOWNLOAD_PROTO_HTTPS/g' config/general.h
 
 RUN mkdir /built
-RUN make bin/ipxe.pxe && cp bin/ipxe.pxe /built
-RUN make bin-x86_64-efi/ipxe.efi && cp bin-x86_64-efi/ipxe.efi /built
+RUN make -j$(nproc) bin/ipxe.pxe && cp bin/ipxe.pxe /built
+RUN make -j$(nproc) bin-x86_64-efi/ipxe.efi && cp bin-x86_64-efi/ipxe.efi /built
 
 
 FROM python:3.13-slim AS config-renderer

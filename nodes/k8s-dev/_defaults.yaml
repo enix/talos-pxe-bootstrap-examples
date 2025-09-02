@@ -1,0 +1,4 @@
+netmask: 255.255.255.0
+gateway: 192.168.100.1
+vlan: 1234
+interface: ens1

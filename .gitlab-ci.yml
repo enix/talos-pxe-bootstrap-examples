@@ -1,0 +1,29 @@
+stages:
+  - build
+  - deploy
+
+build:
+  image: docker:24
+  stage: build
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker context create project-builder
+    - docker buildx create project-builder --driver docker-container --use
+    - docker buildx build --push -t $CI_REGISTRY_IMAGE:$CI_PIPELINE_IID
+      --cache-to type=registry,ref=$CI_REGISTRY_IMAGE/cache,mode=max
+      --cache-from type=registry,ref=$CI_REGISTRY_IMAGE/cache .
+
+deploy:
+  image: docker:24
+  stage: deploy
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:$CI_PIPELINE_IID
+    - docker stop -t 2 $CI_PROJECT_NAME || true
+    - docker rm $CI_PROJECT_NAME || true
+    - docker run --detach --privileged --net=host --name $CI_PROJECT_NAME $CI_REGISTRY_IMAGE:$CI_PIPELINE_IID
+    - sleep 2 && docker logs $CI_PROJECT_NAME
+  tags:
+    - deploy
